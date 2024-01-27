@@ -26,5 +26,6 @@ router.route("/register").post(
 router.route("/login").post(LoginUser);
 //secure routes
 router.route("/logout").post(verifyJwt, LogoutUser);
-router.route("/refresh-token").post(refreshJwtToken);
+router.route("/refresh-token").post(refreshJwtToken
+  );
 export default router;
