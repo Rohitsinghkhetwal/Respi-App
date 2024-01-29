@@ -13,4 +13,4 @@ const SubscriberSchema  = new mongoose.Schema({
 
 })
 
-export const Subscription = mongoose.model("Subscription", SubscriberSchema);
+export const Subscriptions = mongoose.model("Subscriptions", SubscriberSchema);

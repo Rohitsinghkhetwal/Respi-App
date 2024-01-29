@@ -7,6 +7,8 @@ import Jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 import dotenv from "dotenv";
 
+// now we 
+
 
 dotenv.config({
   path: "./.env",
@@ -262,6 +264,108 @@ const updateAvatar = asyncHandler(async(req, res) => {
     ))
 
 })
+
+const updateCoverImage = asyncHandler(async(req, res) => {
+  const coverImagePath = req.file?.path;
+
+  if(!coverImagePath){
+    throw new ApiError(400, "CoverImage path not found");
+  }
+
+  const CoverCloudnary = await uploadCloudinary(AvatarPath);
+  if(!CoverCloudnary.url){
+    throw new ApiError(400, "error while uploading file")
+  }
+
+  const result = await Users.findByIdAndUpdate(req.users?._id, 
+    {
+      $set: {
+        CoverImage: CoverCloudnary.url
+
+      }
+    }, {
+      new: true
+    }).select("-password");
+
+    return res
+    .status(200)
+    .json(
+      new ApiResponse(200, result, "CoverImage updated sucessfully!")
+    )
+})
+
+const getUserChannelProfile = asyncHandler(async(req, resp) => {
+  const {username} = req.params;
+  console.log("request parameteres", req.params);
+  if(!username?.trim()) {
+    throw new ApiError(400, "username not found !!!!!")
+  }
+
+  const channel = await Users.aggregate([
+    {
+      $match: {
+        username: username?.toLowerCase(),
+      },
+    },
+    {
+      $lookup: {
+        from: "subscriptions",
+        localField: "_id",
+        foreignField: "channel",
+        as: "subscribers",
+      },
+    },
+    {
+      $lookup: {
+        from: "subscriptions",
+        localField: "_id",
+        foreignField: "subscriber",
+        as: "SubscribedTo",
+      },
+    },
+    {
+      $addFields: {
+        subscriberCount: {
+          $size: "$subscribers",
+        },
+        subscriberSubscribedTo: {
+          $size: "$SubscribedTo",
+        },
+        isSubscribed: {
+          $cond: {
+            if: { $in: [req.users?._id, "$subscribers.subscriber"]},
+            then: true,
+            else: false,
+          },
+        },
+      },
+    },
+    {
+      $project: {
+        username: 1,
+        email: 1,
+        fullname: 1,
+        avatar: 1,
+        coverImage: 1,
+        subscriberCount: 1,
+        subscriberSubscribedTo: 1,
+        isSubscribed: 1
+      },
+    },
+  ]); 
+
+  if(!channel?.length) {
+    throw new ApiError(404, "channel does not exist !" )
+  }
+
+  return resp
+  .status(200)
+  .json(
+    new ApiResponse(200, channel, "Channel details fetched successfully !")
+  )
+
+
+})
 export {
   registerUser,
   LoginUser,
@@ -270,4 +374,6 @@ export {
   changePassword,
   updateAccountDetail,
   updateAvatar,
+  updateCoverImage,
+  getUserChannelProfile
 };
