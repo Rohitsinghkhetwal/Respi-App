@@ -6,6 +6,7 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 import Jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 import dotenv from "dotenv";
+import mongoose from "mongoose";
 
 // now we 
 
@@ -363,9 +364,60 @@ const getUserChannelProfile = asyncHandler(async(req, resp) => {
   .json(
     new ApiResponse(200, channel, "Channel details fetched successfully !")
   )
-
-
 })
+
+const getWatchHistory = asyncHandler(async(req, resp) => {
+  const result = await Users.aggregate([
+    {
+      $match: {
+        _id: mongoose.Types.ObjectId(req.users._id),
+      },
+    },
+    {
+      $lookup: {
+        from: "vedios",
+        localField: "watchHistory",
+        foreignField: "_id",
+        as: "watchHistory", 
+        pipeline: [
+          {
+            $lookup: {
+              from: "users",
+              localField: "owner",
+              foreignField: "_id",
+              as: "Owner", 
+              pipeline: [
+                {
+                  $project:{
+                    username: 1,
+                    fullname: 1,
+                    avatar: 1
+                  }
+                }
+              ]
+            }
+          },
+          //this lookup returns an array so for sake of simplicity we have to take out array's first element
+          {
+            $addFields: {
+              owner: {
+                $first: "$owner"
+              }
+            }
+          }
+
+        ]
+      },
+    },
+  ]);
+  return resp
+  .status(200)
+  .json(
+    new ApiResponse(200, result[0].watchHistory, "Users WatchHistory feetched successfully !!!!")
+  )
+})
+
+
 export {
   registerUser,
   LoginUser,
@@ -375,5 +427,6 @@ export {
   updateAccountDetail,
   updateAvatar,
   updateCoverImage,
-  getUserChannelProfile
+  getUserChannelProfile,
+  getWatchHistory,
 };
