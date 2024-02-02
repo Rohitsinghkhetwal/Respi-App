@@ -22,9 +22,10 @@ app.use(cookieParser());
 
 //importing the routes
 import userRoutes from "./routes/user.routes.js";
-
+import vediosRoute from "./routes/vedios.routes.js";
 
 
 app.use("/api/v1/users", userRoutes);
+app.use("/api/v1/studyMaterial", vediosRoute);
 
 export {app}
