@@ -101,28 +101,29 @@ const DeleteVedio = asyncHandler(async(req, resp) => {
     throw new ApiError(400, "Vedio not found")
   }
   console.log("gully gully chor", searchVedioId);
+  try{
+     const DeletedVedio = await cloudinary.uploader.destroy(searchVedioId._id);
+     console.log("Deleted Vedio", DeletedVedio);
 
-  cloudinary.uploader.destroy(searchVedioId._id, (error, result) => {
-    if (error) {
-      console.log("Error deleting from cloudnary", error.message);
-    } else {
-      console.log("success", result);
-    }
-  });
+     const Response = await vedios.deleteOne({ _id: searchVedioId._id });
 
-  const Response = await vedios.deleteOne({ _id });
+     if (Response.deletedCount === 1) {
+       resp.json({ message: "Item Deleted Successfully!" });
+     } else {
+       throw new ApiError(400, "User not found");
+     }
 
-  if(Response.deletedCount === 1){
-    resp.json({message: "Item Deleted Successfully!"})
-  } else {
-    throw new ApiError(400, "User not found")
+     return resp
+       .status(200)
+       .json(new ApiResponse(200, "Item deleted successfully !"));
+
+  }catch(error){
+    console.log("error", error);
+    throw new ApiError(500, "Internal server Error")
+
   }
 
-  return resp
-  .status(200)
-  .json(
-    new ApiResponse(200, "Item deleted successfully !")
-  )
+ 
 })
 
 export { PublishVedio, getVedioById, updateVedio, getAllVedio, DeleteVedio };
