@@ -100,7 +100,7 @@ const DeleteVedio = asyncHandler(async(req, resp) => {
   if(!searchVedioId){
     throw new ApiError(400, "Vedio not found")
   }
-  console.log("gully gully chor", searchVedioId);
+  console.log("Information of Vedio : => ", searchVedioId);
   try{
      const DeletedVedio = await cloudinary.uploader.destroy(searchVedioId._id);
      console.log("Deleted Vedio", DeletedVedio);
@@ -122,8 +122,41 @@ const DeleteVedio = asyncHandler(async(req, resp) => {
     throw new ApiError(500, "Internal server Error")
 
   }
-
- 
 })
 
-export { PublishVedio, getVedioById, updateVedio, getAllVedio, DeleteVedio };
+const getAllVedios = asyncHandler(async(req, res) => {
+  const {page = 1, limit = 10, query, sortby, sortType, userId} = req.query;
+
+  //we have to paginate the data first 
+
+  const Page = parseInt(page) || 1;
+  const Limit = parseInt(limit) || 10;
+  const TotalVedios = await vedios.countDocuments();
+  const TotalPages = Math.ceil(TotalVedios / Limit);
+  if(Page > TotalPages){
+    return res.json({message: "Page not found !"})
+  }
+
+  try{
+    const result = await vedios.find().sort({ [sortby]: sortType === 'desc' ? -1 : 1})
+    .skip((Page - 1) * Limit).limit(Limit);
+
+    return res
+    .status(200)
+    .json(ApiResponse(200, result, "data fetched successfully !"))
+
+
+  }catch(err){
+    console.log("HEy something went wrong !");
+    throw err;
+  }
+})
+
+export {
+  PublishVedio,
+  getVedioById,
+  updateVedio,
+  getAllVedio,
+  DeleteVedio,
+  getAllVedios,
+};
