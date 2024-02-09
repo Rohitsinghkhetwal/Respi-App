@@ -161,10 +161,67 @@ const removeVediotoPlaylist = asyncHandler(async(req, resp) => {
     )
 })
 
+const deletePlaylist = asyncHandler(async(req, resp) => {
+    const {playListId} = req.params;
+
+    if(!playListId){
+        throw new ApiError(400, "playlist not found !!!")
+    }
+
+    const result = await playlists.findByIdAndDelete(playListId);
+
+    if(result.deletedCount === 1){
+        resp.json({message: "Playlist deleted successful  !"})
+    }else{
+        resp.json({message: "palylist not found !"})
+    }
+
+    return resp
+    .status(200)
+    .json(
+        new ApiResponse(200, "Done successfully")
+    )
+
+})
+
+const updatePlaylist = asyncHandler(async(req, resp) => {
+    const {playListId} = req.params;
+    const {name, description} = req.body;
+
+    if(!(name || description)){
+        throw new ApiError(400, "Field required !")
+    }
+
+    if(!playListId){
+        resp.json({message: "Please provide valid information"})
+    }
+
+    const response = await playlists.findByIdAndUpdate(playListId, {
+        $set: {
+            name,
+            description
+        }
+
+    },
+    {
+        new: true
+    })
+
+    return resp
+    .status(200)
+    .json(
+        new ApiResponse(200, response, "Playlist Updated Successfully...")
+    )
+
+
+})
+
 export {
   createPlaylist,
   AddVedioToPlaylist,
   getUserPlaylists,
   getplayListById,
   removeVediotoPlaylist,
+  deletePlaylist,
+  updatePlaylist,
 };
