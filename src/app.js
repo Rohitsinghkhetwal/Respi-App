@@ -24,10 +24,12 @@ app.use(cookieParser());
 import userRoutes from "./routes/user.routes.js";
 import vediosRoute from "./routes/vedios.routes.js";
 import PlaylistRoute from "./routes/playlist.routes.js"
+import tweetRoutes from "./routes/tweet.routes.js"
 
 
 app.use("/api/v1/users", userRoutes);
 app.use("/api/v1/studyMaterial", vediosRoute);
 app.use("/api/v1/creatingPlaylist", PlaylistRoute);
+app.use("/api/v1/tweets", tweetRoutes);
 
 export {app}
